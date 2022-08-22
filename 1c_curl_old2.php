@@ -1,0 +1,336 @@
+<?php
+require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
+$APPLICATION->SetTitle("Синхронизация");
+
+CModule::IncludeModule("iblock");
+CModule::IncludeModule("sale");
+CModule::IncludeModule("catalog");
+
+$offset = $_GET['q'];
+file_put_contents('exp_log_time.html', date("Y-m-d H:i:s"));
+
+get_gson_array($offset);
+function get_gson_array($offset){
+	$login = 'admin@kck007';
+	$password = 'c2033ef669';
+
+	$yesterday_1  = mktime(0, 0, 0, date("m")  , date("d"), date("Y"));
+	$yesterday = date("Y-m-d H:i:s",$yesterday_1);  	
+	//$url = 'https://online.moysklad.ru/api/remap/1.1/entity/product?limit=100&offset='.$offset.'&filter='.urlencode('pathName!=');
+	
+	$url = 'https://online.moysklad.ru/api/remap/1.1/entity/product?limit=100&offset='.$offset.'&filter='.urlencode('updated>'.$yesterday.';pathName!=');
+
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+	curl_setopt($ch, CURLOPT_USERPWD, "$login:$password");
+	$result = curl_exec($ch);
+
+	$json = json_decode($result, true);
+	//print '<pre>';print_r($json);die();
+	if($json['rows'][0]){
+		foreach ($json['rows'] as $key) {
+	$i++;
+	
+			$arSelect = Array("ID", "IBLOCK_ID", "NAME", "DATE_ACTIVE_FROM","PROPERTY_*");
+			$arFilter = Array("IBLOCK_ID"=>IntVal(9), "XML_ID"=>$key['id']);
+			$res = CIBlockElement::GetList(Array(), $arFilter, false, false, $arSelect);
+
+			while($ob = $res->GetNextElement()){ 
+				$arFields = $ob->GetFields();  
+				$arProps = $ob->GetProperties();
+			}
+
+	  		if($key['pathName']){
+	  			
+	  			$cat = explode('/', $key['pathName']);
+	  			if($cat[0]!='Товары интернет-магазинов'){
+
+	  				$ib_section_id = create_cat($cat);
+					if($arFields['ID']==''){
+		  				create_new_element($key, $ib_section_id);//создаем элемент	
+		  			}else{
+		  				update_element($key, $arFields, $arProps);//апдейтим существующий
+		  			}	  				
+	  			}
+	  		}else{
+	  			$ib_section_id = false;
+				if($arFields['ID']==''){
+	  				create_new_element($key, $ib_section_id);//создаем элемент	
+	  			}else{
+	  				update_element($key, $arFields, $arProps);//апдейтим существующий
+	  			}
+	  		}
+	  		//file_put_contents('exp_log.html', '<hr/>', FILE_APPEND | LOCK_EX);*/	
+		}
+		unset($arFields);
+		unset($arProps);
+		unset($json);
+		curl_close($ch);
+		$offset = $offset + 100;	
+
+		header('Location: http://santehnic-market.ru/1c_curl.php?q='.$offset);	
+		//get_gson_array($offset);
+	}else{
+		curl_close($ch);
+		print $result;
+		//exit();	
+	}
+	echo 'Экспорт завершен';
+	
+}
+
+function create_cat($cat, $ib_section_id = '*', $i = 0){
+
+	//file_put_contents('exp_log.html', 'NEW', FILE_APPEND | LOCK_EX);
+	$arFilter1 = Array('IBLOCK_ID'=>9, 'IBLOCK_SECTION_ID'=>$ib_section_id, 'NAME'=>$cat[$i]);
+
+	$db_list = CIBlockSection::GetList(Array(), $arFilter1, true);
+	$ar_result1 = $db_list->GetNext();
+
+	if($ar_result1['ID']){
+		//$cat_log.= $ar_result1['ID'].'- ID '.$ar_result1['NAME']./*': '.$ar_result1['ELEMENT_CNT'].*/': '.$ar_result1['IBLOCK_SECTION_ID'].' - SECTION_ID - раздел существует | ';
+		$ib_section_id = $ar_result1['ID'];//раздел есть
+	}else{
+		//$cat_log.= $cat[$i].' - создаем | ';
+
+		if($ib_section_id == '*'){
+			$ib_section_id ='';
+		}
+
+		$bs = new CIBlockSection;
+		$arFields = Array(
+		  "ACTIVE" => "Y",
+		  "IBLOCK_SECTION_ID" => $ib_section_id,
+		  "IBLOCK_ID" => 9,
+		  'CODE' => rus2translit($cat[$i]),
+		  "NAME" => $cat[$i]
+		  );
+
+		  $ID = $bs->Add($arFields,true);
+		  $res = ($ID>0);
+		  $ib_section_id = $ID;
+
+		if(!$res){
+		  	$cat_log.= $bs->LAST_ERROR.' - ощибка добавления раздела';
+		}else{
+			//$cat_log.= $cat[$i].' - добавлен раздел';
+		}
+	}
+	file_put_contents('exp_log.html', $cat_log, FILE_APPEND | LOCK_EX);
+	unset($cat_log);
+	$i++;
+	if($i<count($cat)){
+		return create_cat($cat, $ib_section_id, $i);
+	}else{
+		return $ib_section_id;
+	}
+}
+
+function create_new_element($params, $ib_section_id = false){ 
+//echo 'create_el';die();
+if($ib_section_id != false || $ib_section_id != ''){
+	
+//создаем элемент	
+	file_put_contents('exp_log.html', 'UPDATE', FILE_APPEND | LOCK_EX);	
+	$z = check_time($params['updated']);
+	get_gson_foto($params);
+	$el = new CIBlockElement;
+
+	$PROP = array();
+	$PROP=array(
+		'ARTICUL'=>$params['code'],
+	);
+	//добавляем элемент в каталог
+	foreach($params['characteristics'] as $prop){
+		$properties = CIBlockProperty::GetList(Array("sort"=>"asc", "name"=>"asc"), Array("ACTIVE"=>"Y", "IBLOCK_ID"=>9,'NAME'=>$prop['name']));
+		if($prop_fields = $properties->GetNext()){
+			$PROP[$prop_fields['CODE']]	= $prop['value'];	
+		}else{
+			$arFields = Array(
+		        "NAME" => $prop['name'],
+		        "ACTIVE" => "Y",
+		        //"SORT" => "600",
+		        "CODE" => strtoupper(rus2translit($prop['name'])),
+		        "PROPERTY_TYPE" => "S",
+		        "IBLOCK_ID" => 9,
+		    );
+		    $ibp = new CIBlockProperty;
+		    $PropID = $ibp->Add($arFields);
+			$PROP[strtoupper(rus2translit($prop['name']))]	= $prop['value'];	
+		}
+		
+	}
+	$arLoadProductArray = Array(
+	   	"IBLOCK_SECTION_ID" => $ib_section_id, 
+	   	"IBLOCK_ID"      => 9,
+	   	'CODE' => rus2translit($params['name']),
+	   	"PROPERTY_VALUES"=> $PROP,
+	   	"NAME"           => $params['name'],
+	   	"ACTIVE"         => "Y",
+	   	"XML_ID" => $params['id'],
+	   	"DATE_ACTIVE_FROM" => $z,
+		"DETAIL_PICTURE" => CFile::MakeFileArray("upload/moy_sklad/".$params['image']['filename']),
+		"PREVIEW_PICTURE" => CFile::MakeFileArray("upload/moy_sklad/".$params['image']['filename']),
+		"DETAIL_TEXT" => $params['description'],
+		"PREVIEW_TEXT" => $params['description'],
+   );
+   if($PRODUCT_ID = $el->Add($arLoadProductArray)){
+   		//$el_log .= "Элемент с ID: ".$PRODUCT_ID." добавлен. | ";
+	   //добавляет параметры товара
+	  	$arFields = array(
+	        "ID" => $PRODUCT_ID, 
+	        "VAT_ID" => 1, //тип ндс
+	        "VAT_INCLUDED" => "Y" //НДС входит в стоимость
+	    );
+
+	   	if(CCatalogProduct::Add($arFields)){
+	       	//$el_log .= "Добавил параметры товара к элементу каталога ".$PRODUCT_ID.' | ';
+	   	}else{
+	       	$el_log .= 'Ошибка добавления параметров | ';
+	   	}
+	   	// Установление цены для товара
+	   	$PRICE_TYPE_ID = 1;
+
+	   	$arFields = Array(
+	       "PRODUCT_ID" => $PRODUCT_ID,
+	       "CATALOG_GROUP_ID" => $PRICE_TYPE_ID,
+	       "PRICE" => substr($params['buyPrice']['value'], 0, -2),
+	       "CURRENCY" => "RUB",
+	   	);
+	   
+	   	if(CPrice::Add($arFields)){
+	       //$el_log .= "Добавил цену ".$params['buyPrice']['value']." рублей на товар с ID: ".$PRODUCT_ID.' | ';
+	   	}else{
+	       $el_log .= 'Ошибка добавления цены '.$params['buyPrice']['value'];	      
+	   	}  	
+   	}else{
+      $el_log .= "Элемнет не добавлен! Error: ".$el->LAST_ERROR. ' - '. rus2translit($params['name']);
+   	}
+   	file_put_contents('exp_log.html', $el_log, FILE_APPEND | LOCK_EX);
+   	unset($el_log);
+	}
+}
+
+function update_element($params, $arFields, $arProps){//апдейтим существующий
+
+//echo 'update_el';die();
+
+	$z = check_time($params['updated'],$arFields['DATE_ACTIVE_FROM']);
+	
+	if($z!=1){	
+/*проверяем изменен ли файл*/
+		$rsElement = CIBlockElement::GetList(
+			array(),array("=ID"=>$arFields['ID']),false,false,array("PREVIEW_PICTURE"));
+		if($arElement = $rsElement->Fetch()){
+	    	$arFile = CFile::GetFileArray($arElement["PREVIEW_PICTURE"]);
+	    		if($arFile){
+	       			//if($params['image']['filename']!=$arFile['ORIGINAL_NAME']){
+					get_gson_foto($params);//обновляем файл
+				//}
+	  			}
+		}
+	
+		$el = new CIBlockElement;
+	
+		$PROP=array('ARTICUL'=>$params['code']);
+		//свойтсва
+		foreach($params['characteristics'] as $prop){
+			$properties = CIBlockProperty::GetList(Array("sort"=>"asc", "name"=>"asc"), Array("ACTIVE"=>"Y", "IBLOCK_ID"=>9,'NAME'=>$prop['name']));
+			if($prop_fields = $properties->GetNext()){
+				$PROP[$prop_fields['CODE']]	= $prop['value'];	
+			} else {
+				$arFields = Array(
+			        "NAME" => $prop['name'],
+			        "ACTIVE" => "Y",
+			        "CODE" => strtoupper(rus2translit($prop['name'])),
+			        "PROPERTY_TYPE" => "S",
+			        "IBLOCK_ID" => 9,
+			    );
+			    $ibp = new CIBlockProperty;
+			    $PropID = $ibp->Add($arFields);
+				$PROP[strtoupper(rus2translit($prop['name']))]	= $prop['value'];	
+			}
+			
+		} 
+
+		$arLoadProductArray = Array(
+			"IBLOCK_ID"      => 9,
+			"PROPERTY_VALUES"=> $PROP,
+			"NAME"           => $params['name'],
+			'CODE' => rus2translit($params['name']),
+			"XML_ID" => $params['id'],
+			"ACTIVE"         => "Y",
+			"DATE_ACTIVE_FROM" => $z,
+			"DETAIL_PICTURE" => CFile::MakeFileArray("upload/moy_sklad/".$params['image']['filename']),
+			"PREVIEW_PICTURE" => CFile::MakeFileArray("upload/moy_sklad/".$params['image']['filename']),
+			"DETAIL_TEXT" => $params['description'],
+			"PREVIEW_TEXT" => $params['description'],
+		  );
+		$PRODUCT_ID = $arFields['ID'];  // изменяем элемент с кодом (ID) 2		
+	   	$el->Update($PRODUCT_ID, $arLoadProductArray);	   		
+	   	$new_pr = substr($params['buyPrice']['value'], 0, -2);//апдейт цены
+		update_price($PRODUCT_ID,$new_pr);
+	}
+}
+
+function get_gson_foto($params){
+	$login = 'admin@kck007';
+	$password = 'c2033ef669';
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $params['image']['meta']['href']);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+	curl_setopt($ch, CURLOPT_USERPWD, "$login:$password");
+	$result = curl_exec($ch);
+
+	$res = file_put_contents('upload/moy_sklad/'.$params['image']['filename'], $result);
+		file_put_contents('exp_log.html', $res.'<br/>', FILE_APPEND | LOCK_EX);	
+	
+	curl_close($ch);
+}
+
+
+function rus2translit($string) {
+    $converter = array(
+        'а' => 'a',   'б' => 'b',   'в' => 'v','г' => 'g',   'д' => 'd',   'е' => 'e',
+        'ё' => 'e',   'ж' => 'zh',  'з' => 'z','и' => 'i',   'й' => 'y',   'к' => 'k',
+        'л' => 'l',   'м' => 'm',   'н' => 'n','о' => 'o',   'п' => 'p',   'р' => 'r',
+        'с' => 's',   'т' => 't',   'у' => 'u','ф' => 'f',   'х' => 'h',   'ц' => 'c',
+        'ч' => 'ch',  'ш' => 'sh',  'щ' => 'sch','ь' => '',  'ы' => 'y',   'ъ' => '',
+        'э' => 'e',   'ю' => 'yu',  'я' => 'ya',
+        
+        'А' => 'A',   'Б' => 'B',   'В' => 'V',
+        'Г' => 'G',   'Д' => 'D',   'Е' => 'E',
+        'Ё' => 'E',   'Ж' => 'Zh',  'З' => 'Z',
+        'И' => 'I',   'Й' => 'Y',   'К' => 'K',
+        'Л' => 'L',   'М' => 'M',   'Н' => 'N',
+        'О' => 'O',   'П' => 'P',   'Р' => 'R',
+        'С' => 'S',   'Т' => 'T',   'У' => 'U',
+        'Ф' => 'F',   'Х' => 'H',   'Ц' => 'C',
+        'Ч' => 'Ch',  'Ш' => 'Sh',  'Щ' => 'Sch','+'=>'',
+        'Ь' => '',  'Ы' => 'Y',   'Ъ' => '',
+        'Э' => 'E',   'Ю' => 'Yu',  'Я' => 'Ya', ' '=>'_', '.'=>'','  '=>'_','/'=>'','"'=>'_',')'=>'','('=>'','°'=>'',','=>'','\''=>'','   '=>'_',
+        '  '=>'_',
+    );
+    return strtolower(strtr($string, $converter));
+}
+function check_time($x,$y = ""){
+	$x=explode(' ',$x);
+	$x[0] = explode('-',$x[0]);
+	$x[0] = array_reverse($x[0]);
+	$x[0] = implode('.',$x[0]);
+	$z = implode(' ',$x);
+	if($y == "" || $y != $z){return $z;}else{return 1;}
+}
+
+function update_price($PRODUCT_ID, $PRICE){
+	   	$arF = Array(
+		    "PRODUCT_ID" => $PRODUCT_ID,
+		    "CATALOG_GROUP_ID" => 1,
+		    "PRICE" => $PRICE,
+		    "CURRENCY" => "RUB",
+	   	);
+	   	CPrice::Update($PRODUCT_ID, $arF);
+}

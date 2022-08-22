@@ -1,0 +1,33 @@
+.subsection a
+{text-decoration:none}
+
+@media only screen and (min-device-width: 800px) {
+    .catalog.items-list .categories .category {
+        -ms-flex: 0 0 19.9% !important;
+        -webkit-flex: 0 0 19.9% !important;
+        flex: 0 0 19.9% !important;
+    }
+    .catalog.items-list .categories .category .preview-image {
+        width: 90px;
+        height: 90px;
+    }
+    .catalog.items-list .categories .category .text
+    {
+
+        font-size:12px;
+        display: table;
+        width:142px;
+
+    }
+    .catalog.items-list .categories
+    {
+        width:100%;
+    }
+    .catalog.items-list .categories .category .text .name{
+
+        display: table-cell;
+        vertical-align: middle;
+
+
+    }
+}

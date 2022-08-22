@@ -1,0 +1,18 @@
+@font-face {
+	font-family: 'Material-Design-Iconic-Font';
+	src: url('material-design/Material-Design-Iconic-Font.woff2')
+		 format('woff2'),
+		 url('material-design/Material-Design-Iconic-Font.woff')
+		 format('woff'),
+		 url('material-design/Material-Design-Iconic-Font.ttf')
+		 format('truetype');
+}
+@font-face {
+	font-family: 'Icon Font';
+	src: url('icon-font/icon-font.woff?v0.24')
+		 format('woff'),
+		 url('icon-font/icon-font.ttf?v0.24')
+		 format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}

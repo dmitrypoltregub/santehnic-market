@@ -1,0 +1,23 @@
+@media only screen and (min-device-width: 800px) {
+    .catalog .content .items .item-wrap {
+        margin: 0 0px 40px 4px !important;
+        width: 220px !important;
+        min-height:453px !important;
+
+    }
+    .catalog .content .items .item-wrap .product-item{
+        width: 220px;
+    }
+    .product-item .name {
+        height: 92px !important;
+    }
+
+
+    
+}
+@media only screen and (max-device-width: 800px) {
+    .product-item .buttons {
+        display: block !important;
+    }
+
+}

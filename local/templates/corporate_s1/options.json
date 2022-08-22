@@ -1,0 +1,79 @@
+{
+    "assets": {
+        "css": [
+            "/vendor/normalize/normalize.css",
+            "/vendor/fonts/fonts.css",
+            "/vendor/owlcarousel/owl.carousel.min.css",
+            "/vendor/lightbox/lightbox.min.css",
+            "/vendor/scrollbar/jquery.scrollbar.css",
+            "/style.css"
+        ],
+        "js": [
+            "/vendor/jquery/jquery.min.js",
+            "/vendor/jquery/jquery.modal.js",
+            "/vendor/jquery/jquery.validate.min.js",
+            "/vendor/jquery/jquery.inview.js",
+            "/vendor/owlcarousel/owl.carousel.min.js",
+            "/vendor/lightbox/lightbox.min.js",
+            "/vendor/maskedinput/jquery.maskedinput.min.js",
+            "/vendor/bitrix/forms.pro.js",
+            "/vendor/scrollbar/jquery.scrollbar.min.js",
+            "/script.js"
+        ],
+        "less": [
+            "/less/flex_prefix.less",
+            "/less/icons.less",
+            "/less/template_styles.less",
+            "/less/elements.less",
+            "/less/mediaqueries.less",
+            "/less/forms.less",
+            "/less/custom.less"
+        ]
+    },
+    "schemes": [
+        {
+            "color1": "#f44336",
+            "images": {
+                "preview": "/images/themes/scheme1_preview.jpg",
+                "big": "/images/themes/scheme1_full.jpg"
+            }
+        },
+        {
+            "color1": "#18c29c",
+            "images": {
+                "preview": "/images/themes/scheme2_preview.jpg",
+                "big": "/images/themes/scheme2_full.jpg"
+            }
+        },
+        {
+            "color1": "#e76711",
+            "images": {
+                "preview": "/images/themes/scheme3_preview.jpg",
+                "big": "/images/themes/scheme3_full.jpg"
+            }
+        },
+        {
+            "color1": "#00ad5e",
+            "images": {
+                "preview": "/images/themes/scheme4_preview.jpg",
+                "big": "/images/themes/scheme4_full.jpg"
+            }
+        },
+        {
+            "color1": "#faaf00",
+            "images": {
+                "preview": "/images/themes/scheme5_preview.jpg",
+                "big": "/images/themes/scheme5_full.jpg"
+            }
+        },
+        {
+            "color1": "#1b9fc6",
+            "images": {
+                "preview": "/images/themes/scheme6_preview.jpg",
+                "big": "/images/themes/scheme6_full.jpg"
+            }
+        }
+
+        
+    ]
+}

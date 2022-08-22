@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24pt" height="24pt" viewBox="0 0 24 24" version="1.1">
+<g id="surface1">
+<path style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:10;" d="M 40.999349 32.999674 L 40.999349 42.000326 L 31.998698 42.000326 " transform="matrix(0.48,0,0,0.48,0,0)"/>
+<path style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:10;" d="M 6.998698 17.000326 L 6.998698 7.999674 L 15.999349 7.999674 " transform="matrix(0.48,0,0,0.48,0,0)"/>
+<path style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:10;" d="M 15.999349 42.000326 L 6.998698 42.000326 L 6.998698 32.999674 " transform="matrix(0.48,0,0,0.48,0,0)"/>
+<path style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:10;" d="M 31.998698 7.999674 L 40.999349 7.999674 L 40.999349 17.000326 " transform="matrix(0.48,0,0,0.48,0,0)"/>
+<path style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:10;" d="M 30.997721 18.001302 L 40.551758 8.447266 " transform="matrix(0.48,0,0,0.48,0,0)"/>
+<path style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:10;" d="M 17.000326 31.998698 L 7.446289 41.552734 " transform="matrix(0.48,0,0,0.48,0,0)"/>
+<path style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:10;" d="M 30.997721 31.998698 L 40.551758 41.552734 " transform="matrix(0.48,0,0,0.48,0,0)"/>
+<path style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:10;" d="M 17.000326 18.001302 L 7.446289 8.447266 " transform="matrix(0.48,0,0,0.48,0,0)"/>
+</g>
+</svg>

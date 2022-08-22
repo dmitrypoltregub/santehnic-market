@@ -1,0 +1,16 @@
+@media screen and (max-width: 960px) {
+    .search-container {
+        display: flex !important;
+    }
+}
+.mobile-search-icon {
+    position:relative;
+    z-index:100;
+    margin-left:90px;
+    top:-27px;
+}
+@media screen and (min-width: 960px) {
+    .mobile-search-icon {
+        display: none;
+    }
+}
